@@ -1,19 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"log"
+
+	"github.com/ThomasFerro/golb/config"
+
+	"github.com/ThomasFerro/golb/blog"
 
 	"github.com/ThomasFerro/golb/posts"
 )
 
 func main() {
-	// TODO: Config from env var
-	postsExtractor := posts.NewFileSystemPostsExtractor("/Users/thomasferro/Documents/perso/git/readmes/posts")
+	postsExtractor := posts.NewFileSystemPostsExtractor(config.GetConfiguration("POST_PATH"))
 	extractedPosts, err := postsExtractor.ExtractPostsInformation()
 	if err != nil {
 		log.Fatalf("Unable to extract posts information: %v", err)
 	}
-	fmt.Println(extractedPosts)
-	// TODO: Generate the blog pages
+
+	blogPath, err := blog.GenerateBlog(blog.BlogMetadata{
+		Title:                config.GetConfiguration("TITLE"),
+		Locale:               config.GetConfiguration("LOCALE"),
+		PostPageTemplatePath: config.GetConfiguration("POST_PAGE_TEMPLATE_PATH"),
+		DistPath:             config.GetConfiguration("DIST_PATH"),
+	}, extractedPosts)
+	if err != nil {
+		log.Fatalf("Unable to generate the blog: %v", err)
+	}
+	log.Printf("Blog successfully generated here: %v", blogPath)
 }
