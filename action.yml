@@ -1,0 +1,35 @@
+name: "golb"
+description: "Golb - The statically generated blogging platform"
+
+inputs:
+  posts_path:
+    description: 'Path to your posts'
+    required: true
+  blog_title:
+    description: 'Your blog\'s title'
+    required: true
+  locale:
+    description: 'Your blog\'s locale'
+    required: true
+    default: 'en'
+  post_page_template_path:
+    description: 'Path to your post page template if you want a custom one'
+  home_page_template_path:
+    description: 'Path to your home page template if you want a custom one'
+  dist_path:
+    description: 'Path to your blog\'s destination'
+    required: true
+    default: '/tmp/dist'
+  global_assets_path:
+    description: 'Path to the assets to add to your blog'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    POSTS_PATH: ${{ inputs.posts_path }}
+    TITLE: ${{ inputs.blog_title }}
+    LOCALE: ${{ inputs.locale }}
+    POST_PAGE_TEMPLATE_PATH: ${{ inputs.post_page_template_path }}
+    HOME_PAGE_TEMPLATE_PATH: ${{ inputs.home_page_template_path }}
+    DIST_PATH: ${{ inputs.dist_path }}
+    GLOBAL_ASSETS_PATH: ${{ inputs.global_assets_path }}

@@ -8,7 +8,7 @@ import (
 type ConfigurationKey string
 
 var ConfigurationsWithFallback = map[ConfigurationKey]string{
-	"POST_PATH":               "/Users/thomasferro/Documents/perso/git/readmes/posts",
+	"POSTS_PATH":              "/Users/thomasferro/Documents/perso/git/readmes/posts",
 	"TITLE":                   "Thomas Ferro",
 	"LOCALE":                  "en",
 	"POST_PAGE_TEMPLATE_PATH": "/Users/thomasferro/Documents/perso/git/golb/blog/postPageTemplate.go.html",
