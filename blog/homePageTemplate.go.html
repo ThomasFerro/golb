@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
+    <title>{{.BlogTitle}}</title>
 </head>
 <body>
+    <header><a href="/">{{.BlogTitle}}</a></header>
     <ul class="posts">
         {{range $index, $post := .Posts}}
             <li><a href="{{ getPostPath $post }}">{{ $post.Name }}</a></li>

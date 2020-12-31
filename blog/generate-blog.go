@@ -17,7 +17,7 @@ import (
 type GeneratedBlogPath string
 
 type BlogMetadata struct {
-	Title                string
+	BlogTitle            string
 	Locale               string
 	PostPageTemplatePath string
 	HomePageTemplatePath string
@@ -25,15 +25,16 @@ type BlogMetadata struct {
 }
 
 type homeData struct {
-	Title  string
-	Locale string
-	Posts  []posts.Post
+	BlogTitle string
+	Locale    string
+	Posts     []posts.Post
 }
 
 type postData struct {
-	Title   string
-	Locale  string
-	Content string
+	BlogTitle string
+	PageTitle string
+	Locale    string
+	Content   string
 }
 
 type generatedPage struct {
@@ -85,9 +86,10 @@ func generatePostsPages(metadata BlogMetadata, posts []posts.Post) (generatedPag
 	generatedPostsPages := generatedPages{}
 	for _, post := range posts {
 		data := postData{
-			Title:   fmt.Sprintf("%v - %v", post.Name, metadata.Title),
-			Locale:  metadata.Locale,
-			Content: string(post.Content),
+			BlogTitle: metadata.BlogTitle,
+			PageTitle: fmt.Sprintf("%v - %v", post.Name, metadata.BlogTitle),
+			Locale:    metadata.Locale,
+			Content:   string(post.Content),
 		}
 		postPagePath := fmt.Sprintf("%vindex", getPostPath(post))
 		generatedPostPage, err := generatePage(postPageTemplate, postPagePath, data)
@@ -113,9 +115,9 @@ func generateHomePage(metadata BlogMetadata, posts []posts.Post) (generatedPages
 		return nil, fmt.Errorf("Cannot create the home page template: %w", err)
 	}
 	data := homeData{
-		Title:  metadata.Title,
-		Locale: metadata.Locale,
-		Posts:  reversePosts(posts),
+		BlogTitle: metadata.BlogTitle,
+		Locale:    metadata.Locale,
+		Posts:     reversePosts(posts),
 	}
 	generatedHomePage, err := generatePage(homePageTemplate, "index", data)
 	if err != nil {
