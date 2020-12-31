@@ -20,7 +20,14 @@ type BlogMetadata struct {
 	Title                string
 	Locale               string
 	PostPageTemplatePath string
+	HomePageTemplatePath string
 	DistPath             string
+}
+
+type homeData struct {
+	Title  string
+	Locale string
+	Posts  []posts.Post
 }
 
 type postData struct {
@@ -43,10 +50,34 @@ func formatPageName(pageName string) string {
 	return strings.ToLower(processedPageName)
 }
 
-func generatePostsPages(metadata BlogMetadata, posts []posts.Post) (generatedPages, error) {
-	splitTemplatePage := strings.Split(metadata.PostPageTemplatePath, "/")
+func getPostPath(post posts.Post) string {
+	return fmt.Sprintf("posts/%v/", formatPageName(post.Name))
+}
+
+func generatePage(template *template.Template, pagePath string, data interface{}) (generatedPage, error) {
+	bytesBuffer := new(bytes.Buffer)
+	pageWriter := bufio.NewWriter(bytesBuffer)
+	err := template.Execute(pageWriter, data)
+	if err != nil {
+		return generatedPage{}, err
+	}
+	pageWriter.Flush()
+	return generatedPage{
+		content:  bytesBuffer.Bytes(),
+		pagePath: pagePath,
+	}, nil
+}
+
+func getTemplate(templatePath string) (*template.Template, error) {
+	splitTemplatePage := strings.Split(templatePath, "/")
 	templateName := splitTemplatePage[len(splitTemplatePage)-1]
-	postPageTemplate, err := template.New(templateName).ParseFiles(metadata.PostPageTemplatePath)
+	return template.New(templateName).Funcs(template.FuncMap{
+		"getPostPath": getPostPath,
+	}).ParseFiles(templatePath)
+}
+
+func generatePostsPages(metadata BlogMetadata, posts []posts.Post) (generatedPages, error) {
+	postPageTemplate, err := getTemplate(metadata.PostPageTemplatePath)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create the post page template: %w", err)
 	}
@@ -58,34 +89,57 @@ func generatePostsPages(metadata BlogMetadata, posts []posts.Post) (generatedPag
 			Locale:  metadata.Locale,
 			Content: string(post.Content),
 		}
-		var bytesBuffer bytes.Buffer
-		postPageWriter := bufio.NewWriter(&bytesBuffer)
-		err := postPageTemplate.Execute(postPageWriter, data)
+		postPagePath := fmt.Sprintf("%vindex", getPostPath(post))
+		generatedPostPage, err := generatePage(postPageTemplate, postPagePath, data)
 		if err != nil {
 			return nil, err
 		}
-		generatedPostsPages = append(generatedPostsPages, generatedPage{
-			content:  bytesBuffer.Bytes(),
-			pagePath: fmt.Sprintf("posts/%v", formatPageName(post.Name)),
-		})
+		generatedPostsPages = append(generatedPostsPages, generatedPostPage)
 	}
 	return generatedPostsPages, nil
 }
 
-func createDirIfNeeded(dirPath string) {
+func reversePosts(postsToReverse []posts.Post) []posts.Post {
+	reversedPosts := []posts.Post{}
+	for postIndex := len(postsToReverse) - 1; postIndex >= 0; postIndex-- {
+		reversedPosts = append(reversedPosts, postsToReverse[postIndex])
+	}
+	return reversedPosts
+}
+
+func generateHomePage(metadata BlogMetadata, posts []posts.Post) (generatedPages, error) {
+	homePageTemplate, err := getTemplate(metadata.HomePageTemplatePath)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot create the home page template: %w", err)
+	}
+	data := homeData{
+		Title:  metadata.Title,
+		Locale: metadata.Locale,
+		Posts:  reversePosts(posts),
+	}
+	generatedHomePage, err := generatePage(homePageTemplate, "index", data)
+	if err != nil {
+		return nil, err
+	}
+
+	return generatedPages{
+		generatedHomePage,
+	}, nil
+}
+
+func createPathToTheFileIfNeeded(filePath string) {
+	dirPath := filepath.Dir(filePath)
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		os.Mkdir(dirPath, os.ModePerm)
+		os.MkdirAll(dirPath, os.ModePerm)
 	}
 }
 
 func writeInDistFolder(distPath string, filesToWriteByType ...generatedPages) (GeneratedBlogPath, error) {
-	createDirIfNeeded(distPath)
 	for _, filesToWrite := range filesToWriteByType {
 		for _, fileToWrite := range filesToWrite {
 			filePath := fmt.Sprintf("%v/%v.html", distPath, fileToWrite.pagePath)
 
-			dir := filepath.Dir(filePath)
-			createDirIfNeeded(dir)
+			createPathToTheFileIfNeeded(filePath)
 
 			file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.ModePerm)
 			if err != nil {
@@ -104,11 +158,14 @@ func writeInDistFolder(distPath string, filesToWriteByType ...generatedPages) (G
 
 // GenerateBlog Generate a blog based on the posts and metadata
 func GenerateBlog(metadata BlogMetadata, posts []posts.Post) (GeneratedBlogPath, error) {
-	// TODO: Generate the blog main page
+	generatedHomePage, err := generateHomePage(metadata, posts)
+	if err != nil {
+		return "", fmt.Errorf("Cannot generate the homepage: %w", err)
+	}
 	generatedPostsPages, err := generatePostsPages(metadata, posts)
 	if err != nil {
 		return "", fmt.Errorf("Cannot generate the post pages: %w", err)
 	}
 
-	return writeInDistFolder(metadata.DistPath, generatedPostsPages)
+	return writeInDistFolder(metadata.DistPath, generatedHomePage, generatedPostsPages)
 }

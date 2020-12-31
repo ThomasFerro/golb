@@ -12,6 +12,7 @@ var ConfigurationsWithFallback = map[ConfigurationKey]string{
 	"TITLE":                   "Thomas Ferro",
 	"LOCALE":                  "en",
 	"POST_PAGE_TEMPLATE_PATH": "/Users/thomasferro/Documents/perso/git/golb/blog/postPageTemplate.go.html",
+	"HOME_PAGE_TEMPLATE_PATH": "/Users/thomasferro/Documents/perso/git/golb/blog/homePageTemplate.go.html",
 	"DIST_PATH":               "./dist",
 }
 
