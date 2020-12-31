@@ -23,6 +23,7 @@ func main() {
 		PostPageTemplatePath: config.GetConfiguration("POST_PAGE_TEMPLATE_PATH"),
 		HomePageTemplatePath: config.GetConfiguration("HOME_PAGE_TEMPLATE_PATH"),
 		DistPath:             config.GetConfiguration("DIST_PATH"),
+		GlobalAssetsPath:     config.GetConfiguration("GLOBAL_ASSETS_PATH"),
 	}, extractedPosts)
 	if err != nil {
 		log.Fatalf("Unable to generate the blog: %v", err)

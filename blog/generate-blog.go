@@ -1,14 +1,9 @@
 package blog
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
-	"text/template"
 
 	"github.com/ThomasFerro/golb/posts"
 )
@@ -22,6 +17,7 @@ type BlogMetadata struct {
 	PostPageTemplatePath string
 	HomePageTemplatePath string
 	DistPath             string
+	GlobalAssetsPath     string
 }
 
 type homeData struct {
@@ -53,28 +49,6 @@ func formatPageName(pageName string) string {
 
 func getPostPath(post posts.Post) string {
 	return fmt.Sprintf("posts/%v/", formatPageName(post.Name))
-}
-
-func generatePage(template *template.Template, pagePath string, data interface{}) (generatedPage, error) {
-	bytesBuffer := new(bytes.Buffer)
-	pageWriter := bufio.NewWriter(bytesBuffer)
-	err := template.Execute(pageWriter, data)
-	if err != nil {
-		return generatedPage{}, err
-	}
-	pageWriter.Flush()
-	return generatedPage{
-		content:  bytesBuffer.Bytes(),
-		pagePath: pagePath,
-	}, nil
-}
-
-func getTemplate(templatePath string) (*template.Template, error) {
-	splitTemplatePage := strings.Split(templatePath, "/")
-	templateName := splitTemplatePage[len(splitTemplatePage)-1]
-	return template.New(templateName).Funcs(template.FuncMap{
-		"getPostPath": getPostPath,
-	}).ParseFiles(templatePath)
 }
 
 func generatePostsPages(metadata BlogMetadata, posts []posts.Post) (generatedPages, error) {
@@ -129,37 +103,18 @@ func generateHomePage(metadata BlogMetadata, posts []posts.Post) (generatedPages
 	}, nil
 }
 
-func createPathToTheFileIfNeeded(filePath string) {
-	dirPath := filepath.Dir(filePath)
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		os.MkdirAll(dirPath, os.ModePerm)
-	}
-}
-
-func writeInDistFolder(distPath string, filesToWriteByType ...generatedPages) (GeneratedBlogPath, error) {
-	for _, filesToWrite := range filesToWriteByType {
-		for _, fileToWrite := range filesToWrite {
-			filePath := fmt.Sprintf("%v/%v.html", distPath, fileToWrite.pagePath)
-
-			createPathToTheFileIfNeeded(filePath)
-
-			file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.ModePerm)
-			if err != nil {
-				return "", err
-			}
-			defer file.Close()
-
-			_, err = file.Write(fileToWrite.content)
-			if err != nil {
-				return "", err
-			}
-		}
-	}
-	return GeneratedBlogPath(distPath), nil
-}
-
 // GenerateBlog Generate a blog based on the posts and metadata
 func GenerateBlog(metadata BlogMetadata, posts []posts.Post) (GeneratedBlogPath, error) {
+	err := clearDist(metadata.DistPath)
+	if err != nil {
+		return "", fmt.Errorf("Cannot clear destination folder: %w", err)
+	}
+
+	err = copyGlobalAssets(metadata)
+	if err != nil {
+		return "", fmt.Errorf("Cannot copy global assets: %w", err)
+	}
+
 	generatedHomePage, err := generateHomePage(metadata, posts)
 	if err != nil {
 		return "", fmt.Errorf("Cannot generate the homepage: %w", err)
