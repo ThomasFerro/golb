@@ -20,4 +20,6 @@ COPY --from=back-builder /dist .
 COPY blog/homePageTemplate.go.html .
 COPY blog/postPageTemplate.go.html .
 
-CMD [ "./golb" ]
+COPY entrypoint.sh .
+
+ENTRYPOINT [ "./entrypoint.sh" ]
