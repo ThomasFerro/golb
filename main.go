@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	postsExtractor := posts.NewFileSystemPostsExtractor(config.GetConfiguration("POST_PATH"))
+	postsExtractor := posts.NewFileSystemPostsExtractor(config.GetConfiguration("POSTS_PATH"))
 	extractedPosts, err := postsExtractor.ExtractPostsInformation()
 	if err != nil {
 		log.Fatalf("Unable to extract posts information: %v", err)
