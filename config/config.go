@@ -14,6 +14,7 @@ var ConfigurationsWithFallback = map[ConfigurationKey]string{
 	"POST_PAGE_TEMPLATE_PATH": "/Users/thomasferro/Documents/perso/git/golb/blog/postPageTemplate.go.html",
 	"HOME_PAGE_TEMPLATE_PATH": "/Users/thomasferro/Documents/perso/git/golb/blog/homePageTemplate.go.html",
 	"DIST_PATH":               "./dist",
+	"GLOBAL_ASSETS_PATH":      "",
 }
 
 func GetConfiguration(configurationKey ConfigurationKey) string {
