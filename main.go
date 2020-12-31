@@ -21,6 +21,7 @@ func main() {
 		Title:                config.GetConfiguration("TITLE"),
 		Locale:               config.GetConfiguration("LOCALE"),
 		PostPageTemplatePath: config.GetConfiguration("POST_PAGE_TEMPLATE_PATH"),
+		HomePageTemplatePath: config.GetConfiguration("HOME_PAGE_TEMPLATE_PATH"),
 		DistPath:             config.GetConfiguration("DIST_PATH"),
 	}, extractedPosts)
 	if err != nil {

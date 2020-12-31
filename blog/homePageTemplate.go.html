@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="{{.Locale}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+</head>
+<body>
+    <ul class="posts">
+        {{range $index, $post := .Posts}}
+            <li><a href="{{ getPostPath $post }}">{{ $post.Name }}</a></li>
+        {{end}}
+    </ul>
+</body>
+</html>
