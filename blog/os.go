@@ -36,6 +36,18 @@ func writeInDistFolder(distPath string, filesToWriteByType ...generatedPages) (G
 	return GeneratedBlogPath(distPath), nil
 }
 
+func getPathWithoutGlobalAssetsPath(globalAssetsPath string, pathToGet string) (string, error) {
+	globalAssetsPathAbsolutePath, err := filepath.Abs(globalAssetsPath)
+	if err != nil {
+		return "", err
+	}
+	pathToGetAbsolutePath, err := filepath.Abs(pathToGet)
+	if err != nil {
+		return "", err
+	}
+	return pathToGetAbsolutePath[len(globalAssetsPathAbsolutePath)+1:], nil
+}
+
 func copyGlobalAssets(metadata BlogMetadata) error {
 	if metadata.GlobalAssetsPath == "" {
 		return nil
@@ -51,7 +63,12 @@ func copyGlobalAssets(metadata BlogMetadata) error {
 		}
 		defer sourceFile.Close()
 
-		destinationFilePath := filepath.Join(metadata.DistPath, path)
+		pathWithoutGlobalAssetsPath, err := getPathWithoutGlobalAssetsPath(metadata.GlobalAssetsPath, path)
+		if err != nil {
+			return err
+		}
+
+		destinationFilePath := filepath.Join(metadata.DistPath, "assets", pathWithoutGlobalAssetsPath)
 		err = os.MkdirAll(filepath.Dir(destinationFilePath), os.ModePerm)
 		if err != nil {
 			return err

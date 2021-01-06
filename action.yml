@@ -14,8 +14,10 @@ inputs:
     default: "en"
   post_page_template_path:
     description: "Path to your post page template if you want a custom one"
+    default: "./postPageTemplate.go.html"
   home_page_template_path:
     description: "Path to your home page template if you want a custom one"
+    default: "./homePageTemplate.go.html"
   dist_path:
     description: "Path to your blog's destination"
     required: true
