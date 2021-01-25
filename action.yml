@@ -1,5 +1,8 @@
-name: "golb"
+name: "golb-blogging-platform"
 description: "Golb - The statically generated blogging platform"
+branding:
+  color: 'green'
+  icon: 'book-open'
 
 inputs:
   posts_path:
