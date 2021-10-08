@@ -10,6 +10,7 @@ ADD config ./config
 ADD posts ./posts
 ADD blog ./blog
 
+RUN go test ./...
 RUN CGO_ENABLED=0 GOOS=linux go build -o /dist/golb
 
 FROM alpine
