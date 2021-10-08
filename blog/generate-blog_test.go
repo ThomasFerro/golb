@@ -3,16 +3,12 @@ package blog_test
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/ThomasFerro/golb/blog"
 	"github.com/ThomasFerro/golb/posts"
 )
-
-/*
-TODO:
-- Copy global assets
-*/
 
 func TestGenerateTheHomePage(t *testing.T) {
 	blogMetadata := blog.BlogMetadata{
@@ -148,5 +144,51 @@ Content...</main>
 
 	if string(secondPostPage) != expectedSecondPost {
 		t.Fatalf("the generated second post page is not as expected, got: %v\nexpected: %v", string(secondPostPage), expectedSecondPost)
+	}
+}
+
+func TestAssets(t *testing.T) {
+	err := os.RemoveAll("../assets")
+	if err != nil {
+		t.Fatalf("unable to remove assets directory: %v", err)
+	}
+	err = os.MkdirAll("../assets/my/path", 0755)
+	if err != nil {
+		t.Fatalf("unable to create dir: %v", err)
+	}
+
+	firstAssetToCopy := `
+	.title {
+		font-size: 12px;
+	}
+	`
+	err = ioutil.WriteFile("../assets/my/path/design.css", []byte(firstAssetToCopy), 0755)
+	if err != nil {
+		t.Fatalf("unable to write file: %v", err)
+	}
+
+	blogMetadata := blog.BlogMetadata{
+		BlogTitle:            "My blog !",
+		Locale:               "en",
+		PostPageTemplatePath: "./postPageTemplate.go.html",
+		HomePageTemplatePath: "./homePageTemplate.go.html",
+		DistPath:             "../dist",
+		GlobalAssetsPath:     "../assets",
+	}
+
+	generatedBlogPath, err := blog.GenerateBlog(blogMetadata, []posts.Post{})
+
+	if err != nil {
+		t.Fatalf("cannot generate the blog: %v", err)
+	}
+
+	firstAssetPath := fmt.Sprintf("%v/assets/my/path/design.css", generatedBlogPath)
+	copiedFirstAsset, err := ioutil.ReadFile(firstAssetPath)
+	if err != nil {
+		t.Fatalf("cannot open the first asset: %v", err)
+	}
+
+	if string(copiedFirstAsset) != firstAssetToCopy {
+		t.Fatalf("the first asset is not as expected, got: %v\nexpected: %v", string(copiedFirstAsset), firstAssetToCopy)
 	}
 }
